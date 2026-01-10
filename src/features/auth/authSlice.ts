@@ -1,5 +1,12 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { authApi, type LoginRequest, type InitSuperAdminRequest, type CreateAdminRequest, type CreateUserRequest } from "../../services/authApi";
+import {
+  authApi,
+  type LoginRequest,
+  type InitRootAdminRequest,
+  type CreateAdminRequest,
+  type CreateSuperAdminRequest,
+  type CreateUserRequest,
+} from "../../services/authApi";
 
 interface AuthState {
   user: string | null;
@@ -13,11 +20,11 @@ interface AuthState {
 // Helper to decode JWT and extract user info
 const decodeToken = (token: string) => {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
+    const payload = JSON.parse(atob(token.split(".")[1]));
     return {
       email: payload.sub,
       name: payload.name,
-      role: payload.type
+      role: payload.type,
     };
   } catch {
     return null;
@@ -35,42 +42,44 @@ const initialState: AuthState = {
 
 // Async thunks
 export const loginAsync = createAsyncThunk(
-  'auth/login',
+  "auth/login",
   async (credentials: LoginRequest, { rejectWithValue }) => {
     try {
       const response = await authApi.login(credentials);
       if (response.success) {
         const token = response.data!.token;
-        localStorage.setItem('token', token);
+        localStorage.setItem("token", token);
         const decoded = decodeToken(token);
         return { token, ...decoded };
       } else {
         return rejectWithValue(response.message);
       }
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Login failed');
+      return rejectWithValue(error.response?.data?.message || "Login failed");
     }
   }
 );
 
-export const initSuperAdminAsync = createAsyncThunk(
-  'auth/initSuperAdmin',
-  async (data: InitSuperAdminRequest, { rejectWithValue }) => {
+export const initRootAdminAsync = createAsyncThunk(
+  "auth/initRootAdmin",
+  async (data: InitRootAdminRequest, { rejectWithValue }) => {
     try {
-      const response = await authApi.initSuperAdmin(data);
+      const response = await authApi.initRootAdmin(data);
       if (response.success) {
         return response.message;
       } else {
         return rejectWithValue(response.message);
       }
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to create superadmin');
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to create root admin"
+      );
     }
   }
 );
 
 export const createAdminAsync = createAsyncThunk(
-  'auth/createAdmin',
+  "auth/createAdmin",
   async (data: CreateAdminRequest, { rejectWithValue }) => {
     try {
       const response = await authApi.createAdmin(data);
@@ -80,13 +89,33 @@ export const createAdminAsync = createAsyncThunk(
         return rejectWithValue(response.message);
       }
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to create admin');
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to create admin"
+      );
+    }
+  }
+);
+
+export const createSuperAdminAsync = createAsyncThunk(
+  "auth/createSuperAdmin",
+  async (data: CreateSuperAdminRequest, { rejectWithValue }) => {
+    try {
+      const response = await authApi.createSuperAdmin(data);
+      if (response.success) {
+        return response.message;
+      } else {
+        return rejectWithValue(response.message);
+      }
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to create super admin"
+      );
     }
   }
 );
 
 export const createUserAsync = createAsyncThunk(
-  'auth/createUser',
+  "auth/createUser",
   async (data: CreateUserRequest, { rejectWithValue }) => {
     try {
       const response = await authApi.createUser(data);
@@ -96,7 +125,9 @@ export const createUserAsync = createAsyncThunk(
         return rejectWithValue(response.message);
       }
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to create user');
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to create user"
+      );
     }
   }
 );
@@ -111,13 +142,13 @@ const authSlice = createSlice({
       state.userRole = null;
       state.isAuthenticated = false;
       state.error = null;
-      localStorage.removeItem('token');
+      localStorage.removeItem("token");
     },
     clearError(state) {
       state.error = null;
     },
     restoreSession(state) {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (token) {
         const decoded = decodeToken(token);
         if (decoded) {
@@ -126,7 +157,7 @@ const authSlice = createSlice({
           state.userRole = decoded.role;
           state.isAuthenticated = true;
         } else {
-          localStorage.removeItem('token');
+          localStorage.removeItem("token");
         }
       }
     },
@@ -148,14 +179,14 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      .addCase(initSuperAdminAsync.pending, (state) => {
+      .addCase(initRootAdminAsync.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(initSuperAdminAsync.fulfilled, (state) => {
+      .addCase(initRootAdminAsync.fulfilled, (state) => {
         state.loading = false;
       })
-      .addCase(initSuperAdminAsync.rejected, (state, action) => {
+      .addCase(initRootAdminAsync.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
