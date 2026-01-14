@@ -14,6 +14,8 @@ import type {
   UpdateSessionReportRequest,
   FinalizeSessionReportRequest,
   Result,
+  AttemptStateResponse,
+  AttemptInfo,
 } from "../types";
 
 // Axios instance (reuse from authApi)
@@ -99,6 +101,33 @@ export const testApi = {
   // Start attempt
   startAttempt: async (testId: number): Promise<ApiResponse<Attempt>> => {
     const response = await api.post(`/api/tests/${testId}/attempts`, {});
+    return response.data;
+  },
+
+  // Get attempt state for resume
+  getAttemptState: async (
+    attemptId: number
+  ): Promise<ApiResponse<AttemptStateResponse>> => {
+    const response = await api.get(`/api/attempts/${attemptId}/state`);
+    return response.data;
+  },
+
+  // Get test attempt state from testId (smart resume/start)
+  getTestAttemptState: async (
+    testId: number
+  ): Promise<ApiResponse<AttemptStateResponse>> => {
+    const response = await api.get(`/api/tests/${testId}/attempts/me/state`);
+    return response.data;
+  },
+
+  // Get latest attempt for a test
+  getLatestAttempt: async (
+    testId: number,
+    onlyIncomplete: boolean = true
+  ): Promise<ApiResponse<AttemptInfo>> => {
+    const response = await api.get(`/api/tests/${testId}/attempts/me/latest`, {
+      params: { onlyIncomplete },
+    });
     return response.data;
   },
 

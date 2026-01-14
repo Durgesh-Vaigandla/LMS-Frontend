@@ -5,7 +5,8 @@ export const UserCreationMode = {
   CREATE_USER: "CREATE_USER",
 } as const;
 
-export type UserCreationModeType = typeof UserCreationMode[keyof typeof UserCreationMode];
+export type UserCreationModeType =
+  (typeof UserCreationMode)[keyof typeof UserCreationMode];
 
 export const QuestionType = {
   MCQ: "MCQ",
@@ -13,7 +14,7 @@ export const QuestionType = {
   FILL_BLANK: "FILL_BLANK",
 } as const;
 
-export type QuestionTypeType = typeof QuestionType[keyof typeof QuestionType];
+export type QuestionTypeType = (typeof QuestionType)[keyof typeof QuestionType];
 
 export const UserRole = {
   ROOTADMIN: "ROOTADMIN",
@@ -22,7 +23,7 @@ export const UserRole = {
   USER: "USER",
 } as const;
 
-export type UserRoleType = typeof UserRole[keyof typeof UserRole];
+export type UserRoleType = (typeof UserRole)[keyof typeof UserRole];
 
 export interface Test {
   id: number;
@@ -155,15 +156,44 @@ export interface FinalizeSessionReportRequest {
 }
 
 export interface Result {
-  attemptId: number;
-  testId: number;
-  testTitle: string;
-  userId: number;
-  userName: string;
-  userEmail: string;
+  id: number;
+  test: {
+    id: number;
+    title: string;
+    description: string;
+    startTime: string;
+    endTime: string;
+    totalMarks: number;
+    published: boolean;
+    maxAttempts: number;
+    createdBy: any; // Using any to handle nested user object structure
+  };
+  student: {
+    id: number;
+    email: string;
+    name: string;
+    type: string;
+  };
+  attemptNumber: number;
+  startedAt: string;
+  submittedAt: string | null;
   score: number;
-  maxScore: number;
-  percentage: number;
-  submittedAt: string;
+  completed: boolean;
+  updatedAt: string;
   isValidTest?: boolean;
+}
+
+export interface AttemptInfo {
+  id: number;
+  attemptNumber: number;
+  completed: boolean;
+  startedAt: string | null;
+  submittedAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface AttemptStateResponse {
+  attempt: AttemptInfo;
+  questions: Question[];
+  answers: Record<string, string>;
 }
