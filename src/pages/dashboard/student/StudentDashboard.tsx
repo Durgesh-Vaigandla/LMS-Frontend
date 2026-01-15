@@ -99,7 +99,6 @@ const StudentDashboard: React.FC = () => {
       </div>
     );
   }
-  const averageScore = percentage;
   const completedTests = myResults.length;
   const pendingTests = availableTests.length;
 
@@ -541,7 +540,7 @@ const StudentDashboard: React.FC = () => {
                             {percentage.toFixed(1)}%
                           </div>
                           <div className="text-sm text-text-secondary">
-                            {result.score}/{result.totalMarks} marks
+                            {result.score}/{result.test.totalMarks} marks
                           </div>
                           <div className="mt-2 w-32 bg-gray-200 rounded-full h-2">
                             <div

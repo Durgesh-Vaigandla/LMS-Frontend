@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useAppSelector } from "../app/hooks";
-import LoginForm from "./LoginForm";
-import UserLists from "./UserLists";
-import Navbar from "./Navbar";
+import LoginForm from "../pages/auth/LoginPage";
+import UserLists from "./admin/users/UserList";
+import Navbar from "./common/Navbar";
 
 type ViewType = "login" | "dashboard";
 

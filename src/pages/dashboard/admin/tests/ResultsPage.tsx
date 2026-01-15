@@ -80,21 +80,25 @@ const ResultsPage: React.FC = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-border">
                   {results.map((result) => (
-                    <tr key={result.attemptId}>
+                    <tr key={result.test.id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-text">
-                        {result.testTitle}
+                        {result.test.title}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
-                        {result.userName} ({result.userEmail})
+                        {result.student.name} ({result.student.email})
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
-                        {result.score}/{result.maxScore}
+                        {result.score}/{result.test.totalMarks}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
-                        {result.percentage.toFixed(2)}%
+                        {(
+                          (result.score / result.test.totalMarks) *
+                          100
+                        ).toFixed(2)}
+                        %
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
-                        {new Date(result.submittedAt).toLocaleString()}
+                        {new Date(result.submittedAt || "").toLocaleString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
                         {result.isValidTest ? "Valid" : "Invalid"}

@@ -70,9 +70,15 @@ const AdminDashboard: React.FC = () => {
             to="/dashboard/tests"
             className="bg-white rounded-lg shadow-sm border border-border p-6 hover:shadow-md transition-shadow"
           >
-            <h3 className="text-lg font-semibold text-text mb-2">Manage Tests</h3>
-            <p className="text-text-secondary mb-4">Create, edit, and publish tests</p>
-            <div className="text-2xl font-bold text-blue-600">{tests.length}</div>
+            <h3 className="text-lg font-semibold text-text mb-2">
+              Manage Tests
+            </h3>
+            <p className="text-text-secondary mb-4">
+              Create, edit, and publish tests
+            </p>
+            <div className="text-2xl font-bold text-blue-600">
+              {tests.length}
+            </div>
             <div className="text-sm text-text-secondary">Tests created</div>
           </Link>
 
@@ -83,7 +89,10 @@ const AdminDashboard: React.FC = () => {
             <h3 className="text-lg font-semibold text-text mb-2">Questions</h3>
             <p className="text-text-secondary mb-4">Add and manage questions</p>
             <div className="text-2xl font-bold text-green-600">
-              {tests.reduce((acc, test) => acc + (test as any).questionCount || 0, 0)}
+              {tests.reduce(
+                (acc, test) => acc + (test as any).questionCount || 0,
+                0
+              )}
             </div>
             <div className="text-sm text-text-secondary">Total questions</div>
           </Link>
@@ -94,7 +103,9 @@ const AdminDashboard: React.FC = () => {
           >
             <h3 className="text-lg font-semibold text-text mb-2">Results</h3>
             <p className="text-text-secondary mb-4">View student performance</p>
-            <div className="text-2xl font-bold text-orange-600">{results.length}</div>
+            <div className="text-2xl font-bold text-orange-600">
+              {results.length}
+            </div>
             <div className="text-sm text-text-secondary">Total attempts</div>
           </Link>
         </div>
@@ -102,9 +113,7 @@ const AdminDashboard: React.FC = () => {
         {/* Recent Tests */}
         <div className="bg-white rounded-lg shadow-sm border border-border overflow-hidden">
           <div className="px-4 sm:px-6 py-4 bg-gray-50 border-b border-border flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-text">
-              Recent Tests
-            </h2>
+            <h2 className="text-lg font-semibold text-text">Recent Tests</h2>
             <Link
               to="/dashboard/tests"
               className="text-blue-600 hover:text-blue-800 text-sm font-medium"
@@ -158,7 +167,10 @@ const AdminDashboard: React.FC = () => {
             </div>
           ) : (
             <div className="p-4 text-center text-text-secondary">
-              No tests created yet. <Link to="/dashboard/tests/create" className="text-blue-500">Create your first test</Link>
+              No tests created yet.{" "}
+              <Link to="/dashboard/tests/create" className="text-blue-500">
+                Create your first test
+              </Link>
             </div>
           )}
         </div>
@@ -166,9 +178,7 @@ const AdminDashboard: React.FC = () => {
         {/* Recent Results */}
         <div className="bg-white rounded-lg shadow-sm border border-border overflow-hidden">
           <div className="px-4 sm:px-6 py-4 bg-gray-50 border-b border-border flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-text">
-              Recent Results
-            </h2>
+            <h2 className="text-lg font-semibold text-text">Recent Results</h2>
             <Link
               to="/dashboard/results"
               className="text-blue-600 hover:text-blue-800 text-sm font-medium"
@@ -197,18 +207,18 @@ const AdminDashboard: React.FC = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-border">
                   {results.slice(0, 5).map((result) => (
-                    <tr key={result.attemptId}>
+                    <tr key={result.test.id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-text">
-                        {result.testTitle}
+                        {result.test.title}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
-                        {result.userName}
+                        {result.student.name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
-                        {result.score}/{result.maxScore}
+                        {result.score}/{result.test.totalMarks}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
-                        {new Date(result.submittedAt).toLocaleString()}
+                        {new Date(result.submittedAt || "").toLocaleString()}
                       </td>
                     </tr>
                   ))}
