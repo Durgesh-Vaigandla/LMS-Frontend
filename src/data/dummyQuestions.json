@@ -1,0 +1,202 @@
+[
+    {
+        "questionType": "MCQ",
+        "questionText": "What is the time complexity of binary search algorithm?",
+        "marks": 2,
+        "negativeMarks": 0,
+        "optionA": "O(n)",
+        "optionB": "O(log n)",
+        "optionC": "O(n²)",
+        "optionD": "O(1)",
+        "correctOption": "B"
+    },
+    {
+        "questionType": "MCQ",
+        "questionText": "Which data structure uses LIFO (Last In First Out) principle?",
+        "marks": 1,
+        "negativeMarks": 0,
+        "optionA": "Queue",
+        "optionB": "Array",
+        "optionC": "Stack",
+        "optionD": "Linked List",
+        "correctOption": "C"
+    },
+    {
+        "questionType": "MCQ",
+        "questionText": "What does SQL stand for?",
+        "marks": 1,
+        "negativeMarks": 0,
+        "optionA": "Structured Query Language",
+        "optionB": "Simple Question Language",
+        "optionC": "Standard Query Library",
+        "optionD": "System Quality Language",
+        "correctOption": "A"
+    },
+    {
+        "questionType": "MCQ",
+        "questionText": "Which of the following is NOT a programming paradigm?",
+        "marks": 2,
+        "negativeMarks": 1,
+        "optionA": "Object-Oriented",
+        "optionB": "Functional",
+        "optionC": "Procedural",
+        "optionD": "Sequential",
+        "correctOption": "D"
+    },
+    {
+        "questionType": "MCQ",
+        "questionText": "What is the default access modifier in Java classes?",
+        "marks": 1,
+        "negativeMarks": 0,
+        "optionA": "public",
+        "optionB": "private",
+        "optionC": "protected",
+        "optionD": "package-private (default)",
+        "correctOption": "D"
+    },
+    {
+        "questionType": "MCQ",
+        "questionText": "Which HTTP method is used to update an existing resource?",
+        "marks": 1,
+        "negativeMarks": 0,
+        "optionA": "GET",
+        "optionB": "POST",
+        "optionC": "PUT",
+        "optionD": "DELETE",
+        "correctOption": "C"
+    },
+    {
+        "questionType": "MCQ",
+        "questionText": "What is the output of 3 + 2 + '7' in JavaScript?",
+        "marks": 2,
+        "negativeMarks": 1,
+        "optionA": "12",
+        "optionB": "57",
+        "optionC": "327",
+        "optionD": "Error",
+        "correctOption": "B"
+    },
+    {
+        "questionType": "MCQ",
+        "questionText": "Which design pattern ensures a class has only one instance?",
+        "marks": 2,
+        "negativeMarks": 0,
+        "optionA": "Factory Pattern",
+        "optionB": "Singleton Pattern",
+        "optionC": "Observer Pattern",
+        "optionD": "Strategy Pattern",
+        "correctOption": "B"
+    },
+    {
+        "questionType": "MCQ",
+        "questionText": "What does CSS stand for?",
+        "marks": 1,
+        "negativeMarks": 0,
+        "optionA": "Computer Style Sheets",
+        "optionB": "Creative Style Sheets",
+        "optionC": "Cascading Style Sheets",
+        "optionD": "Colorful Style Sheets",
+        "correctOption": "C"
+    },
+    {
+        "questionType": "MCQ",
+        "questionText": "Which sorting algorithm has the best average-case time complexity?",
+        "marks": 3,
+        "negativeMarks": 1,
+        "optionA": "Bubble Sort",
+        "optionB": "Selection Sort",
+        "optionC": "Merge Sort",
+        "optionD": "Insertion Sort",
+        "correctOption": "C"
+    },
+    {
+        "questionType": "MAQ",
+        "questionText": "Which of the following are valid Object-Oriented Programming principles? (Select all that apply)",
+        "marks": 3,
+        "negativeMarks": 1,
+        "optionA": "Encapsulation",
+        "optionB": "Inheritance",
+        "optionC": "Compilation",
+        "optionD": "Polymorphism",
+        "correctOptionsCsv": "A,B,D"
+    },
+    {
+        "questionType": "MAQ",
+        "questionText": "Select all the valid HTTP status codes:",
+        "marks": 2,
+        "negativeMarks": 0,
+        "optionA": "200 OK",
+        "optionB": "404 Not Found",
+        "optionC": "999 Invalid",
+        "optionD": "500 Internal Server Error",
+        "correctOptionsCsv": "A,B,D"
+    },
+    {
+        "questionType": "MAQ",
+        "questionText": "Which of these are JavaScript frameworks/libraries?",
+        "marks": 2,
+        "negativeMarks": 1,
+        "optionA": "React",
+        "optionB": "Django",
+        "optionC": "Vue.js",
+        "optionD": "Angular",
+        "correctOptionsCsv": "A,C,D"
+    },
+    {
+        "questionType": "MAQ",
+        "questionText": "Select all data structures that can be implemented using arrays:",
+        "marks": 2,
+        "negativeMarks": 0,
+        "optionA": "Queue",
+        "optionB": "Stack",
+        "optionC": "Hash Table",
+        "optionD": "Binary Tree",
+        "correctOptionsCsv": "A,B,C"
+    },
+    {
+        "questionType": "MAQ",
+        "questionText": "Which of the following are relational database management systems?",
+        "marks": 2,
+        "negativeMarks": 0,
+        "optionA": "MySQL",
+        "optionB": "MongoDB",
+        "optionC": "PostgreSQL",
+        "optionD": "Oracle",
+        "correctOptionsCsv": "A,C,D"
+    },
+    {
+        "questionType": "FILL_BLANK",
+        "questionText": "The keyword used to create a new instance of a class in Java is _____.",
+        "marks": 1,
+        "negativeMarks": 0,
+        "correctAnswer": "new"
+    },
+    {
+        "questionType": "FILL_BLANK",
+        "questionText": "In REST API, _____ is the HTTP method used to retrieve data from the server.",
+        "marks": 1,
+        "negativeMarks": 0,
+        "correctAnswer": "GET"
+    },
+    {
+        "questionType": "FILL_BLANK",
+        "questionText": "The programming paradigm that treats computation as the evaluation of mathematical functions is called _____ programming.",
+        "marks": 2,
+        "negativeMarks": 0,
+        "correctAnswer": "functional"
+    },
+    {
+        "questionType": "FILL_BLANK",
+        "questionText": "The _____ clause in SQL is used to filter records based on a specified condition.",
+        "marks": 1,
+        "negativeMarks": 0,
+        "correctAnswer": "WHERE"
+    },
+    {
+        "questionType": "FILL_BLANK",
+        "questionText": "In Git, the command to save your changes to the local repository is 'git _____'.",
+        "marks": 1,
+        "negativeMarks": 0,
+        "correctAnswer": "commit"
+    }
+]

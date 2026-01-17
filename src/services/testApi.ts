@@ -68,6 +68,18 @@ export const testApi = {
     return response.data;
   },
 
+  // Delete test
+  deleteTest: async (testId: number): Promise<ApiResponse<void>> => {
+    const response = await api.delete(`/api/tests/${testId}`);
+    return response.data;
+  },
+
+  // Delete result
+  deleteResult: async (resultId: number): Promise<ApiResponse<void>> => {
+    const response = await api.delete(`/api/results/${resultId}`);
+    return response.data;
+  },
+
   // Get questions for a test
   getQuestions: async (testId: number): Promise<ApiResponse<Question[]>> => {
     const response = await api.get(`/api/tests/${testId}/questions`);

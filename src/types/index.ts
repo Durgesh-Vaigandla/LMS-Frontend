@@ -105,11 +105,13 @@ export interface Attempt {
   id: number;
   testId: number;
   userId: number;
+  attemptNumber: number;
   startedAt: string;
   submittedAt?: string;
   score?: number;
   maxScore: number;
-  status: "IN_PROGRESS" | "SUBMITTED";
+  completed: boolean;
+  answers?: Answer[]; // Optional answers field if returned
 }
 
 export interface Answer {

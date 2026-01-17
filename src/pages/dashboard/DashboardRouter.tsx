@@ -6,6 +6,7 @@ import SuperAdminDashboard from "./super-admin/SuperAdminDashboard";
 import AdminRouter from "./admin/AdminRouter";
 import StudentDashboard from "./student/StudentDashboard";
 import TakeTest from "./student/TakeTestPage";
+import PreTestInstructions from "./student/PreTestInstructions";
 
 const DashboardRouter: React.FC = () => {
   const { userRole } = useAppSelector((state) => state.auth);
@@ -38,7 +39,10 @@ const DashboardRouter: React.FC = () => {
         }
       />
       {userRole === "USER" && (
-        <Route path="test/take/:testId" element={<TakeTest />} />
+        <>
+          <Route path="tests/:testId/instructions" element={<PreTestInstructions />} />
+          <Route path="test/take/:testId" element={<TakeTest />} />
+        </>
       )}
     </Routes>
   );

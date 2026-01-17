@@ -6,7 +6,7 @@ const LandingPage: React.FC = () => {
     <div className="bg-background min-h-screen flex flex-col">
       {/* Hero Section */}
       <section className="bg-gradient-to-b from-surface to-background pt-24 pb-32 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto text-center relative z-10">
+        <div className="w-full text-center relative z-10">
           <div className="inline-block px-4 py-1.5 bg-red-50 text-primary rounded-full text-sm font-semibold mb-8 animate-fade-in-up border border-red-100">
             Next Generation Learning Platform
           </div>
@@ -35,33 +35,33 @@ const LandingPage: React.FC = () => {
               Root Setup
             </Link>
           </div>
-          
+
           {/* Dashboard Preview Image Placeholder */}
           <div className="mt-16 relative mx-auto max-w-5xl rounded-2xl shadow-2xl border border-border overflow-hidden bg-white aspect-[16/9] animate-fade-in flex items-center justify-center group">
-             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-             <div className="text-center p-8 z-10">
-                <div className="w-20 h-20 bg-white/90 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
-                  <svg className="w-10 h-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <p className="text-white font-semibold text-lg drop-shadow-md">Interactive Dashboard Experience</p>
-             </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+            <div className="text-center p-8 z-10">
+              <div className="w-20 h-20 bg-white/90 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
+                <svg className="w-10 h-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <p className="text-white font-semibold text-lg drop-shadow-md">Interactive Dashboard Experience</p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
       <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-text mb-4">Why Choose BKIT LMS?</h2>
             <p className="text-text-secondary max-w-2xl mx-auto text-lg">
               Everything you need to manage education effectively in one unified platform.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Feature 1 */}
             <div className="p-8 bg-surface rounded-2xl border border-border hover:shadow-lg transition-all duration-300 hover:border-primary/20 group">
@@ -107,14 +107,14 @@ const LandingPage: React.FC = () => {
 
       {/* Footer */}
       <footer className="bg-surface border-t border-border mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center space-x-2 mb-4">
                 <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                   </svg>
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
                 </div>
                 <span className="text-xl font-bold text-text">BKIT LMS</span>
               </div>
@@ -122,7 +122,7 @@ const LandingPage: React.FC = () => {
                 Empowering education through technology. Join thousands of students and educators on the platform.
               </p>
             </div>
-            
+
             <div>
               <h4 className="font-semibold text-text mb-4">Product</h4>
               <ul className="space-y-2 text-text-secondary">
@@ -131,7 +131,7 @@ const LandingPage: React.FC = () => {
                 <li><a href="#" className="hover:text-primary transition-colors">Security</a></li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-semibold text-text mb-4">Support</h4>
               <ul className="space-y-2 text-text-secondary">

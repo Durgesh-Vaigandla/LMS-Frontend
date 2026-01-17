@@ -27,6 +27,20 @@ const ResultsPage: React.FC = () => {
     fetchResults();
   }, []);
 
+  const handleDeleteResult = async (resultId: number) => {
+    if (!confirm("Are you sure you want to delete this result?")) return;
+    try {
+      const response = await testApi.deleteResult(resultId);
+      if (response.success) {
+        setResults(results.filter(r => r.id !== resultId));
+      } else {
+        alert(response.message || "Failed to delete result");
+      }
+    } catch (err: any) {
+      alert("Failed to delete result");
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -76,11 +90,14 @@ const ResultsPage: React.FC = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase">
                       Status
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-border">
                   {results.map((result) => (
-                    <tr key={result.test.id}>
+                    <tr key={result.id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-text">
                         {result.test.title}
                       </td>
@@ -102,6 +119,14 @@ const ResultsPage: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
                         {result.isValidTest ? "Valid" : "Invalid"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
+                        <button
+                          onClick={() => handleDeleteResult(result.id)}
+                          className="text-red-600 hover:text-red-900 font-medium"
+                        >
+                          Delete
+                        </button>
                       </td>
                     </tr>
                   ))}

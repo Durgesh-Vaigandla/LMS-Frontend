@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { testApi } from "../../../../services/testApi";
 import type { Question, Test } from "../../../../types";
+import dummyQuestions from "../../../../data/dummyQuestions.json";
 
 const QuestionManagementPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -11,6 +12,8 @@ const QuestionManagementPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState({ current: 0, total: 0 });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -82,6 +85,49 @@ const QuestionManagementPage: React.FC = () => {
     }
   };
 
+  const handleImportDummyQuestions = async () => {
+    if (!id) return;
+    
+    if (!confirm(`This will import ${dummyQuestions.length} dummy questions. Continue?`)) return;
+
+    setImporting(true);
+    setError(null);
+    setImportProgress({ current: 0, total: dummyQuestions.length });
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (let i = 0; i < dummyQuestions.length; i++) {
+      const question = dummyQuestions[i];
+      setImportProgress({ current: i + 1, total: dummyQuestions.length });
+
+      try {
+        const response = await testApi.createQuestion(parseInt(id), question as any);
+        if (response.success) {
+          successCount++;
+        } else {
+          errorCount++;
+        }
+      } catch (err: any) {
+        errorCount++;
+      }
+    }
+
+    setImporting(false);
+    
+    // Refresh questions list
+    const questionsResponse = await testApi.getQuestions(parseInt(id));
+    if (questionsResponse.success && questionsResponse.data) {
+      setQuestions(questionsResponse.data);
+    }
+
+    if (errorCount > 0) {
+      setError(`Import completed with ${successCount} successful and ${errorCount} failed questions.`);
+    } else {
+      alert(`Successfully imported ${successCount} questions!`);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -108,7 +154,7 @@ const QuestionManagementPage: React.FC = () => {
             </h1>
             <p className="text-text-secondary">Test: {test.title}</p>
           </div>
-          <div className="space-x-2">
+          <div className="flex flex-wrap gap-2">
             <Link
               to={`/dashboard/tests/${id}`}
               className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
@@ -117,9 +163,17 @@ const QuestionManagementPage: React.FC = () => {
             </Link>
             <button
               onClick={() => setShowCreateForm(true)}
-              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+              disabled={importing}
+              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
             >
               Add Question
+            </button>
+            <button
+              onClick={handleImportDummyQuestions}
+              disabled={importing}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
+            >
+              {importing ? `Importing... (${importProgress.current}/${importProgress.total})` : 'Import Dummy Questions'}
             </button>
           </div>
         </div>

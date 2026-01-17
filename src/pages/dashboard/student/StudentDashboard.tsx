@@ -39,10 +39,10 @@ const StudentDashboard: React.FC = () => {
         const reducedPercentage =
           completedTests.length > 0
             ? completedTests.reduce(
-                (sum: number, r: Result) =>
-                  sum + ((r.score / r.test.totalMarks) * 100 || 0),
-                0
-              ) / completedTests.length
+              (sum: number, r: Result) =>
+                sum + ((r.score / r.test.totalMarks) * 100 || 0),
+              0
+            ) / completedTests.length
             : 0;
         setPercentage(reducedPercentage);
       }
@@ -53,7 +53,11 @@ const StudentDashboard: React.FC = () => {
     }
   };
 
-  const handleTakeTest = (test: Test) => {
+  const handleStartTest = (test: Test) => {
+    navigate(`tests/${test.id}/instructions`);
+  };
+
+  const handleResumeTest = (test: Test) => {
     navigate(`test/take/${test.id}`);
   };
 
@@ -104,7 +108,7 @@ const StudentDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-surface p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="w-full space-y-6">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm border border-border p-6">
           <div className="flex items-center justify-between">
@@ -347,7 +351,7 @@ const StudentDashboard: React.FC = () => {
                         </button>
                       ) : attemptInProgress ? (
                         <button
-                          onClick={() => handleTakeTest(test)}
+                          onClick={() => handleResumeTest(test)}
                           className="w-full px-4 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
                         >
                           <svg
@@ -373,7 +377,7 @@ const StudentDashboard: React.FC = () => {
                         </button>
                       ) : (
                         <button
-                          onClick={() => handleTakeTest(test)}
+                          onClick={() => handleStartTest(test)}
                           className="w-full px-4 py-3 bg-primary hover:bg-secondary text-white font-semibold rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
                         >
                           <svg
@@ -483,11 +487,10 @@ const StudentDashboard: React.FC = () => {
                               {result.test.title}
                             </h3>
                             <span
-                              className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                isValid
-                                  ? "bg-green-100 text-green-700"
-                                  : "bg-red-100 text-red-700"
-                              }`}
+                              className={`px-3 py-1 rounded-full text-xs font-semibold ${isValid
+                                ? "bg-green-100 text-green-700"
+                                : "bg-red-100 text-red-700"
+                                }`}
                             >
                               {isValid ? "Valid" : "Invalid"}
                             </span>
@@ -544,13 +547,12 @@ const StudentDashboard: React.FC = () => {
                           </div>
                           <div className="mt-2 w-32 bg-gray-200 rounded-full h-2">
                             <div
-                              className={`h-2 rounded-full ${
-                                percentage >= 75
-                                  ? "bg-green-500"
-                                  : percentage >= 50
+                              className={`h-2 rounded-full ${percentage >= 75
+                                ? "bg-green-500"
+                                : percentage >= 50
                                   ? "bg-yellow-500"
                                   : "bg-red-500"
-                              }`}
+                                }`}
                               style={{ width: `${Math.min(percentage, 100)}%` }}
                             />
                           </div>
