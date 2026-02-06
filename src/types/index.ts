@@ -35,6 +35,7 @@ export interface Test {
   published: boolean;
   maxAttempts: number;
   createdBy: number;
+  proctored: boolean;
 }
 
 export interface CreateTestRequest {
@@ -45,6 +46,7 @@ export interface CreateTestRequest {
   totalMarks: number;
   published: boolean;
   maxAttempts: number;
+  proctored: boolean;
 }
 
 export interface UpdateTestRequest {
@@ -55,6 +57,7 @@ export interface UpdateTestRequest {
   totalMarks?: number;
   published?: boolean;
   maxAttempts?: number;
+  proctored?: boolean;
 }
 
 export interface Question {
@@ -111,6 +114,7 @@ export interface Attempt {
   score?: number;
   maxScore: number;
   completed: boolean;
+  proctored?: boolean; // Whether this test requires proctoring
   answers?: Answer[]; // Optional answers field if returned
 }
 

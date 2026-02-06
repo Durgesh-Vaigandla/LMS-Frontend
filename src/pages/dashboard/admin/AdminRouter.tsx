@@ -6,6 +6,7 @@ import CreateTestPage from "./tests/CreateTestPage";
 import TestDetailPage from "./tests/TestDetailPage";
 import ResultsPage from "./tests/ResultsPage";
 import QuestionManagementPage from "./tests/QuestionManagementPage";
+import ProctoringTestPage from "./ProctoringTestPage";
 
 const AdminRouter: React.FC = () => {
   return (
@@ -16,6 +17,7 @@ const AdminRouter: React.FC = () => {
       <Route path="tests/:id" element={<TestDetailPage />} />
       <Route path="tests/:id/questions" element={<QuestionManagementPage />} />
       <Route path="results" element={<ResultsPage />} />
+      <Route path="proctoring-test" element={<ProctoringTestPage />} />
     </Routes>
   );
 };

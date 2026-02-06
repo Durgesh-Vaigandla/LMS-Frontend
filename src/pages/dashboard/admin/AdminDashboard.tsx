@@ -65,7 +65,7 @@ const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Link
             to="/dashboard/tests"
             className="bg-white rounded-lg shadow-sm border border-border p-6 hover:shadow-md transition-shadow"
@@ -76,7 +76,7 @@ const AdminDashboard: React.FC = () => {
             <p className="text-text-secondary mb-4">
               Create, edit, and publish tests
             </p>
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-2xl font-bold text-primary">
               {tests.length}
             </div>
             <div className="text-sm text-text-secondary">Tests created</div>
@@ -88,7 +88,7 @@ const AdminDashboard: React.FC = () => {
           >
             <h3 className="text-lg font-semibold text-text mb-2">Questions</h3>
             <p className="text-text-secondary mb-4">Add and manage questions</p>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-secondary">
               {tests.reduce(
                 (acc, test) => acc + (test as any).questionCount || 0,
                 0
@@ -103,10 +103,20 @@ const AdminDashboard: React.FC = () => {
           >
             <h3 className="text-lg font-semibold text-text mb-2">Results</h3>
             <p className="text-text-secondary mb-4">View student performance</p>
-            <div className="text-2xl font-bold text-orange-600">
+            <div className="text-2xl font-bold text-primary">
               {results.length}
             </div>
             <div className="text-sm text-text-secondary">Total attempts</div>
+          </Link>
+
+          <Link
+            to="/dashboard/proctoring-test"
+            className="bg-white rounded-lg shadow-sm border border-border p-6 hover:shadow-md transition-shadow"
+          >
+            <h3 className="text-lg font-semibold text-text mb-2">Proctoring Test</h3>
+            <p className="text-text-secondary mb-4">Validate camera + AI model</p>
+            <div className="text-2xl font-bold text-secondary">Lab</div>
+            <div className="text-sm text-text-secondary">Diagnostics</div>
           </Link>
         </div>
 
@@ -116,7 +126,7 @@ const AdminDashboard: React.FC = () => {
             <h2 className="text-lg font-semibold text-text">Recent Tests</h2>
             <Link
               to="/dashboard/tests"
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+              className="text-primary hover:text-secondary text-sm font-medium"
             >
               View all →
             </Link>
@@ -155,7 +165,7 @@ const AdminDashboard: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
                         <Link
                           to={`/dashboard/tests/${test.id}`}
-                          className="text-blue-600 hover:text-blue-800"
+                          className="text-primary hover:text-secondary"
                         >
                           Edit
                         </Link>
@@ -168,7 +178,7 @@ const AdminDashboard: React.FC = () => {
           ) : (
             <div className="p-4 text-center text-text-secondary">
               No tests created yet.{" "}
-              <Link to="/dashboard/tests/create" className="text-blue-500">
+              <Link to="/dashboard/tests/create" className="text-primary">
                 Create your first test
               </Link>
             </div>
@@ -181,7 +191,7 @@ const AdminDashboard: React.FC = () => {
             <h2 className="text-lg font-semibold text-text">Recent Results</h2>
             <Link
               to="/dashboard/results"
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+              className="text-primary hover:text-secondary text-sm font-medium"
             >
               View all →
             </Link>

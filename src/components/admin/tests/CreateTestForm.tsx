@@ -16,6 +16,7 @@ const CreateTestForm: React.FC<CreateTestFormProps> = ({ onSuccess, onCancel }) 
     totalMarks: 0,
     published: false,
     maxAttempts: 1,
+    proctored: false,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -122,21 +123,7 @@ const CreateTestForm: React.FC<CreateTestFormProps> = ({ onSuccess, onCancel }) 
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-text mb-2">
-              Total Marks <span className="text-primary">*</span>
-            </label>
-            <input
-              type="number"
-              name="totalMarks"
-              value={formData.totalMarks}
-              onChange={handleChange}
-              min="0"
-              required
-              placeholder="0"
-              className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-            />
-          </div>
+
 
           <div>
             <label className="block text-sm font-semibold text-text mb-2">
@@ -155,19 +142,39 @@ const CreateTestForm: React.FC<CreateTestFormProps> = ({ onSuccess, onCancel }) 
           </div>
         </div>
 
-        <div className="flex items-center p-4 bg-surface rounded-lg border border-border">
-          <input
-            type="checkbox"
-            name="published"
-            checked={formData.published}
-            onChange={handleChange}
-            className="w-5 h-5 text-primary focus:ring-primary border-border rounded"
-          />
-          <div className="ml-3">
-            <label className="block text-sm font-semibold text-text">
-              Publish Immediately
-            </label>
-            <p className="text-xs text-text-secondary">Make this test available to students right away</p>
+        <div className="space-y-3">
+          <div className="flex items-center p-4 bg-surface rounded-lg border border-border">
+            <input
+              type="checkbox"
+              name="published"
+              checked={formData.published}
+              onChange={handleChange}
+              className="w-5 h-5 text-primary focus:ring-primary border-border rounded"
+            />
+            <div className="ml-3">
+              <label className="block text-sm font-semibold text-text">
+                Publish Immediately
+              </label>
+              <p className="text-xs text-text-secondary">Make this test available to students right away</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <input
+              type="checkbox"
+              name="proctored"
+              checked={formData.proctored}
+              onChange={handleChange}
+              className="w-5 h-5 text-blue-600 focus:ring-blue-500 border-border rounded"
+            />
+            <div className="ml-3">
+              <label className="block text-sm font-semibold text-blue-900">
+                Enable Proctoring (AI Monitoring)
+              </label>
+              <p className="text-xs text-blue-700">
+                Students will be monitored with camera/audio for cheating detection
+              </p>
+            </div>
           </div>
         </div>
 

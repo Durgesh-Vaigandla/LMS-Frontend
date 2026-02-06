@@ -31,6 +31,23 @@ const decodeToken = (token: string) => {
   }
 };
 
+const token = localStorage.getItem("token");
+let initialAuth: Partial<AuthState> = {};
+
+if (token) {
+  const decoded = decodeToken(token);
+  if (decoded) {
+    initialAuth = {
+      user: decoded.email,
+      userName: decoded.name,
+      userRole: decoded.role,
+      isAuthenticated: true,
+    };
+  } else {
+    localStorage.removeItem("token");
+  }
+}
+
 const initialState: AuthState = {
   user: null,
   userName: null,
@@ -38,6 +55,7 @@ const initialState: AuthState = {
   isAuthenticated: false,
   loading: false,
   error: null,
+  ...initialAuth,
 };
 
 // Async thunks

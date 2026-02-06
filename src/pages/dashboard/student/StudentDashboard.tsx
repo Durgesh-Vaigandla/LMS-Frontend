@@ -8,7 +8,8 @@ const StudentDashboard: React.FC = () => {
   const [availableTests, setAvailableTests] = useState<Test[]>([]);
   const [myResults, setMyResults] = useState<Result[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [testsError, setTestsError] = useState<string | null>(null);
+  const [resultsError, setResultsError] = useState<string | null>(null);
   const [percentage, setPercentage] = useState<number>(0);
 
   useEffect(() => {
@@ -18,36 +19,75 @@ const StudentDashboard: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [testsResponse, resultsResponse] = await Promise.all([
+      setTestsError(null);
+      setResultsError(null);
+
+      const [testsResponse, resultsResponse] = await Promise.allSettled([
         testApi.getAvailableTests(),
         testApi.getMyResults(),
       ]);
 
-      if (testsResponse.success && testsResponse.data) {
-        setAvailableTests(testsResponse.data);
+      if (testsResponse.status === "fulfilled") {
+        if (testsResponse.value.success && testsResponse.value.data) {
+          setAvailableTests(testsResponse.value.data);
+        } else {
+          setTestsError(testsResponse.value.message || "Failed to load tests");
+        }
       } else {
-        setError(testsResponse.message);
+        const status = testsResponse.reason?.response?.status;
+        if (status === 401 || status === 403) {
+          localStorage.removeItem("token");
+          navigate("/login", { replace: true });
+          return;
+        }
+        setTestsError(
+          testsResponse.reason?.response?.data?.message || "Failed to load tests"
+        );
       }
 
-      if (resultsResponse.success && resultsResponse.data) {
-        setMyResults(resultsResponse.data);
+      if (resultsResponse.status === "fulfilled") {
+        if (resultsResponse.value.success && resultsResponse.value.data) {
+          setMyResults(resultsResponse.value.data);
 
-        // Calculate average percentage only from completed tests
-        const completedTests = resultsResponse.data.filter(
-          (r: Result) => r.completed
+          // Calculate average percentage only from completed tests
+          const completedTests = resultsResponse.value.data.filter(
+            (r: Result) => r.completed
+          );
+          const reducedPercentage =
+            completedTests.length > 0
+              ? completedTests.reduce(
+                (sum: number, r: Result) =>
+                  sum + ((r.score / r.test.totalMarks) * 100 || 0),
+                0
+              ) / completedTests.length
+              : 0;
+          setPercentage(reducedPercentage);
+        } else {
+          setResultsError(
+            resultsResponse.value.message || "Failed to load results"
+          );
+        }
+      } else {
+        const status = resultsResponse.reason?.response?.status;
+        if (status === 401 || status === 403) {
+          localStorage.removeItem("token");
+          navigate("/login", { replace: true });
+          return;
+        }
+        setResultsError(
+          resultsResponse.reason?.response?.data?.message ||
+          "Failed to load results"
         );
-        const reducedPercentage =
-          completedTests.length > 0
-            ? completedTests.reduce(
-              (sum: number, r: Result) =>
-                sum + ((r.score / r.test.totalMarks) * 100 || 0),
-              0
-            ) / completedTests.length
-            : 0;
-        setPercentage(reducedPercentage);
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to load data");
+      const status = err?.response?.status;
+      if (status === 401 || status === 403) {
+        localStorage.removeItem("token");
+        navigate("/login", { replace: true });
+        return;
+      }
+      setTestsError(err.response?.data?.message || "Failed to load data");
+      setResultsError(err.response?.data?.message || "Failed to load data");
     } finally {
       setLoading(false);
     }
@@ -58,7 +98,7 @@ const StudentDashboard: React.FC = () => {
   };
 
   const handleResumeTest = (test: Test) => {
-    navigate(`test/take/${test.id}`);
+    navigate(`tests/${test.id}/instructions`, { state: { resume: true } });
   };
 
   if (loading) {
@@ -74,7 +114,7 @@ const StudentDashboard: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (testsError && resultsError && availableTests.length === 0 && myResults.length === 0) {
     return (
       <div className="min-h-screen bg-surface flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-lg border border-red-200 p-8 max-w-md">
@@ -98,7 +138,13 @@ const StudentDashboard: React.FC = () => {
               Error Loading Dashboard
             </h3>
           </div>
-          <p className="text-text-secondary">{error}</p>
+          <p className="text-text-secondary">{testsError || resultsError}</p>
+          <button
+            onClick={fetchData}
+            className="mt-4 w-full px-4 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-secondary transition-colors"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
@@ -243,17 +289,15 @@ const StudentDashboard: React.FC = () => {
             </div>
           </div>
 
-          {availableTests.length > 0 ? (
+          {testsError ? (
+            <div className="p-6">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                {testsError}
+              </div>
+            </div>
+          ) : availableTests.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
               {availableTests.map((test) => {
-                const testAttempts = myResults.filter(
-                  (r) => r.test.id === test.id
-                );
-                const isCompleted = testAttempts.some((r) => r.completed);
-                const attemptInProgress = testAttempts.find(
-                  (r) => !r.completed
-                );
-
                 return (
                   <div
                     key={test.id}
@@ -329,79 +373,108 @@ const StudentDashboard: React.FC = () => {
                         </div>
                       </div>
 
-                      {isCompleted ? (
-                        <button
-                          disabled
-                          className="w-full px-4 py-3 bg-green-600 text-white font-semibold rounded-lg flex items-center justify-center space-x-2 cursor-not-allowed opacity-90"
-                        >
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
+                      {(() => {
+                        const testAttempts = myResults.filter(r => r.test.id === test.id);
+                        const attemptsUsed = testAttempts.length;
+                        const maxAttempts = test.maxAttempts;
+                        const currentAttempt = testAttempts.find(r => !r.completed);
+
+                        // Logic:
+                        // 1. If active attempt exists -> Resume
+                        // 2. If no active attempt:
+                        //    a. If attempts check passed -> "Start Test" (or "Retake Test" if >0 previous)
+                        //    b. If attempts exhausted -> "Maximum Attempts Reached"
+
+                        if (currentAttempt) {
+                          return (
+                            <button
+                              onClick={() => handleResumeTest(test)}
+                              className="w-full px-4 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span>Resume Test</span>
+                            </button>
+                          );
+                        }
+
+                        if (attemptsUsed >= maxAttempts) {
+                          return (
+                            <button
+                              disabled
+                              className="w-full px-4 py-3 bg-gray-200 text-gray-500 font-semibold rounded-lg flex items-center justify-center space-x-2 cursor-not-allowed"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                              </svg>
+                              <span>Max Attempts Reached ({attemptsUsed}/{maxAttempts})</span>
+                            </button>
+                          );
+                        }
+
+                        // Check Time Window
+                        const now = new Date();
+                        const start = test.startTime ? new Date(test.startTime) : null;
+                        const end = test.endTime ? new Date(test.endTime) : null;
+
+                        if (start && now < start) {
+                          return (
+                            <button
+                              disabled
+                              className="w-full px-4 py-3 bg-blue-100 text-blue-700 font-semibold rounded-lg flex items-center justify-center space-x-2 cursor-not-allowed"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span>Starts: {start.toLocaleDateString()} {start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            </button>
+                          );
+                        }
+
+                        if (end && now > end) {
+                          return (
+                            <button
+                              disabled
+                              className="w-full px-4 py-3 bg-gray-100 text-gray-500 font-semibold rounded-lg flex items-center justify-center space-x-2 cursor-not-allowed"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span>Test Ended</span>
+                            </button>
+                          );
+                        }
+
+                        return (
+                          <button
+                            onClick={() => handleStartTest(test)}
+                            className="w-full px-4 py-3 bg-primary hover:bg-secondary text-white font-semibold rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                          <span>Test Completed</span>
-                        </button>
-                      ) : attemptInProgress ? (
-                        <button
-                          onClick={() => handleResumeTest(test)}
-                          className="w-full px-4 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
-                        >
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
-                          <span>Resume Test</span>
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleStartTest(test)}
-                          className="w-full px-4 py-3 bg-primary hover:bg-secondary text-white font-semibold rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
-                        >
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
-                          <span>Start Test</span>
-                        </button>
-                      )}
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                              />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                            <span>{attemptsUsed > 0 ? "Retake Test" : "Start Test"}</span>
+                          </button>
+                        );
+                      })()}
                     </div>
                   </div>
                 );
@@ -466,7 +539,13 @@ const StudentDashboard: React.FC = () => {
             </div>
           </div>
 
-          {myResults.filter((r) => r.completed).length > 0 ? (
+          {resultsError ? (
+            <div className="p-6">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                {resultsError}
+              </div>
+            </div>
+          ) : myResults.filter((r) => r.completed).length > 0 ? (
             <div className="divide-y divide-border">
               {myResults
                 .filter((r) => r.completed)

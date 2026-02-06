@@ -5,6 +5,8 @@ import type { Attempt, Question } from "../../../types";
 import CameraPermissionModal from "../../../components/proctoring/CameraPermissionModal";
 import ProctoringManager from "../../../components/proctoring/ProctoringManager";
 import ConnectivityIndicator from "../../../components/common/ConnectivityIndicator";
+import { MediaStreamManager } from "../../../utils/MediaStreamManager";
+import { proctoringModelLoader } from "../../../utils/ProctoringModelLoader";
 
 const TakeTest: React.FC = () => {
   const { testId: testIdParam } = useParams<{ testId: string }>();
@@ -28,6 +30,43 @@ const TakeTest: React.FC = () => {
   const [proctoringStream, setProctoringStream] = useState<MediaStream | null>(null);
   const [, setProctoringError] = useState<string | null>(null);
   const [showQuestionPaper, setShowQuestionPaper] = useState(false);
+  const [showFullscreenWarning, setShowFullscreenWarning] = useState(false);
+  const [isProctoringBlocked, setIsProctoringBlocked] = useState(false); // New blocking state
+  const [isModelPreparing, setIsModelPreparing] = useState(false);
+  const [warningMessage, setWarningMessage] = useState<string | null>(null);
+
+  // Fullscreen Helper
+  const enterFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      }
+    } catch (err) {
+      console.error("Fullscreen request failed:", err);
+      // If failed (e.g. strict browser policy), ensure warning is shown so user clicks button
+      setShowFullscreenWarning(true);
+    }
+  };
+
+  // Monitor Fullscreen
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      // Only warn if we are in active test state (loaded, started, no error)
+      if (!loading && !notStarted && !error && attempt && !attempt.completed) {
+        if (!document.fullscreenElement) {
+          setShowFullscreenWarning(true);
+        } else {
+          setShowFullscreenWarning(false);
+        }
+      }
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    // Initial check
+    handleFullscreenChange();
+
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, [loading, notStarted, error, attempt]);
 
   const loadTest = async () => {
     try {
@@ -59,9 +98,8 @@ const TakeTest: React.FC = () => {
       }
 
       if (!currentAttempt) {
-        // No attempt found, redirect to instructions or show start screen
-        setNotStarted(true);
-        setLoading(false);
+        // No attempt found, redirect to instructions page for proper flow
+        navigate(`/dashboard/student/tests/${testId}/instructions`, { replace: true });
         return;
       }
 
@@ -89,12 +127,21 @@ const TakeTest: React.FC = () => {
       setAnswers(existingAnswers);
 
       if (currentAttempt.completed) {
-        // Attempt is done
-        setError("This attempt is already completed.");
+        // This marks stored attempt as stale. Clear it.
+        localStorage.removeItem(`activeAttempt_${testId}`);
+        // Redirect to instructions to start fresh if allowed, or back to dashboard
+        navigate(`/dashboard/student/tests/${testId}/instructions`, { replace: true });
+        return;
       }
 
     } catch (err: any) {
       console.error("Load test error:", err);
+      const status = err?.response?.status;
+      if (status === 401 || status === 403) {
+        localStorage.removeItem("token");
+        navigate("/login", { replace: true });
+        return;
+      }
       setError(
         err.response?.data?.message || err.message || "Failed to load test"
       );
@@ -109,24 +156,134 @@ const TakeTest: React.FC = () => {
     }
   }, [testId]);
 
+
+  // Security & Violation Listeners
+  useEffect(() => {
+    if (loading || notStarted || !attempt || attempt.completed) return;
+
+    // 1. Prevent Right Click
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    // 2. Prevent Copy/Paste
+    const handleCopyPaste = (e: ClipboardEvent) => {
+      e.preventDefault();
+      setWarningMessage("Copy/Paste is disabled during the test.");
+      window.setTimeout(() => setWarningMessage(null), 3000);
+    };
+
+    // 3. Tab Switching / Visibility Change
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // User switched tabs or minimized window
+        // Ideally report this violation to backend immediately
+        console.warn("User switched tabs");
+        setWarningMessage("You left the test window. This is recorded as a violation.");
+        window.setTimeout(() => setWarningMessage(null), 4000);
+        // We could also force a violation report here via a ref if we had access to the ProctoringManager's method,
+        // or just rely on the fact that if they are hidden, the ProctoringManager might also detect missing face if video stops?
+        // Actually video usually keeps running in background tab in some browsers, but face might be gone.
+      }
+    };
+
+    // 4. Keydown (Prevent F12, PrintScreen - Best Effort)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && e.key === "I") ||
+        (e.metaKey && e.altKey && e.key === "i")
+      ) {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener("contextmenu", handleContextMenu);
+    document.addEventListener("copy", handleCopyPaste);
+    document.addEventListener("cut", handleCopyPaste);
+    document.addEventListener("paste", handleCopyPaste);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
+      document.removeEventListener("copy", handleCopyPaste);
+      document.removeEventListener("cut", handleCopyPaste);
+      document.removeEventListener("paste", handleCopyPaste);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [loading, notStarted, attempt]);
+
+  // Check for existing stream (from Instructions page)
+  useEffect(() => {
+    const existingStream = MediaStreamManager.getInstance().getStream();
+    if (existingStream) {
+      setProctoringStream(existingStream);
+      // Ensure tracks are monitored here too
+      existingStream.getVideoTracks().forEach(track => {
+        track.onended = () => {
+          console.warn("Existing stream ended");
+          setProctoringStream(null);
+        }
+      });
+
+      // Auto-enter fullscreen if we have stream? 
+      // No, need user interaction.
+    }
+  }, []);
+
   // Force permissions check if resuming an active attempt without stream
   useEffect(() => {
-    if (attempt && !attempt.completed && !proctoringStream && !loading) {
+    // Only show modal if we DON'T have a stream and we aren't loading and test is proctored
+    if (attempt && !attempt.completed && !proctoringStream && !loading && attempt.proctored) {
       setShowPermissionModal(true);
     }
   }, [attempt, proctoringStream, loading]);
 
   const handleStartTest = async () => {
+    // If we have stream, start directly
+    if (proctoringStream) {
+      await handlePermissionGranted(proctoringStream);
+      return;
+    }
     // Show permission modal first - don't start test until permissions granted
     setShowPermissionModal(true);
   };
 
   const handlePermissionGranted = async (stream: MediaStream) => {
+    // Handle Stream Inactivity (e.g. user Revokes permission or device disconnects)
+    stream.getTracks().forEach(track => {
+      track.onended = () => {
+        console.warn("Camera stream ended unexpectedly");
+        setProctoringStream(null);
+      };
+    });
+
     setProctoringStream(stream);
     setShowPermissionModal(false);
 
+    // Store in global manager if not already (e.g. if started from here)
+    MediaStreamManager.getInstance().setStream(stream);
+
+    try {
+      setIsModelPreparing(true);
+      await proctoringModelLoader.loadModel();
+    } catch (err) {
+      console.error("Failed to load proctoring model:", err);
+      setError("Failed to initialize proctoring model. Please refresh and try again.");
+      stream.getTracks().forEach(track => track.stop());
+      setProctoringStream(null);
+      setIsModelPreparing(false);
+      return;
+    } finally {
+      setIsModelPreparing(false);
+    }
+
     // If we already have an active attempt (passed from instructions or restored), just proceed
     if (attempt) {
+      // Also try to force fullscreen here as we have a user interaction context (Clicking Allow)
+      enterFullscreen();
       return;
     }
 
@@ -137,10 +294,18 @@ const TakeTest: React.FC = () => {
       if (res.success && res.data) {
         localStorage.setItem(`activeAttempt_${testId}`, String(res.data.id));
         await loadTest();
+        // Try entering fullscreen after load (might fail if async takes too long, but worth a shot or relying on effect)
+        enterFullscreen();
       } else {
         throw new Error(res.message || "Failed to start attempt");
       }
     } catch (err: any) {
+      const status = err?.response?.status;
+      if (status === 401 || status === 403) {
+        localStorage.removeItem("token");
+        navigate("/login", { replace: true });
+        return;
+      }
       setError(err.response?.data?.message || "Failed to start test");
       // Stop stream if test start fails
       stream.getTracks().forEach(track => track.stop());
@@ -203,7 +368,53 @@ const TakeTest: React.FC = () => {
       await testApi.submitAttempt(attempt.id);
       navigate("/dashboard"); // Redirect to dashboard after submit
     } catch (err: any) {
+      const status = err?.response?.status;
+      if (status === 401 || status === 403) {
+        localStorage.removeItem("token");
+        navigate("/login", { replace: true });
+        return;
+      }
       setError(err.response?.data?.message || "Failed to submit test");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleMaxViolationsReached = async () => {
+    // Auto-submit test when max violations reached
+    console.error("🚨 MAX VIOLATIONS REACHED - Auto-submitting test");
+    setWarningMessage("Maximum violations reached! Test is being submitted automatically.");
+    
+    // Wait 2 seconds to show the message
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Auto-submit without confirmation
+    if (!attempt || submitting) return;
+    
+    setSubmitting(true);
+    try {
+      // Save current answer before submitting
+      const currentQ = questions[currentQuestionIndex];
+      if (currentQ && answers[currentQ.id]) {
+        try {
+          await testApi.submitAnswer(attempt.id, {
+            questionId: currentQ.id,
+            answerText: answers[currentQ.id],
+          });
+        } catch (err) {
+          console.error("Failed to save last answer", err);
+        }
+      }
+      
+      await testApi.submitAttempt(attempt.id);
+      navigate("/dashboard", { 
+        state: { 
+          message: "Test submitted due to exceeding maximum violations limit." 
+        } 
+      });
+    } catch (err: any) {
+      console.error("Failed to auto-submit test:", err);
+      setError("Test could not be submitted. Please contact support.");
     } finally {
       setSubmitting(false);
     }
@@ -246,12 +457,27 @@ const TakeTest: React.FC = () => {
             </button>
             <button
               onClick={handleStartTest}
+              disabled={isModelPreparing}
               className="px-6 py-2 bg-primary hover:bg-primary-dark text-white font-bold rounded"
             >
-              Start Attempt
+              {isModelPreparing ? "Initializing Proctoring..." : "Start Attempt"}
             </button>
           </div>
         </div>
+
+        {showPermissionModal && (
+          <CameraPermissionModal
+            onPermissionGranted={handlePermissionGranted}
+            onPermissionDenied={() => {
+              setShowPermissionModal(false);
+              setError("Camera and microphone access is required for this proctored test.");
+            }}
+            onCancel={() => {
+              setShowPermissionModal(false);
+              navigate("/dashboard");
+            }}
+          />
+        )}
       </div>
     );
   }
@@ -283,6 +509,11 @@ const TakeTest: React.FC = () => {
 
   return (
     <div className="h-screen flex flex-col bg-white overflow-hidden">
+      {warningMessage && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[80] bg-yellow-100 border border-yellow-300 text-yellow-900 px-4 py-2 rounded-lg shadow">
+          {warningMessage}
+        </div>
+      )}
       {/* Mobile Palette Overlay */}
       {isMobilePaletteOpen && (
         <div
@@ -525,7 +756,8 @@ const TakeTest: React.FC = () => {
         <div className="hidden md:flex md:col-span-3 lg:col-span-3 flex-col border-l border-border bg-gray-50 h-full overflow-y-auto">
           <div className="p-4 space-y-6">
 
-            {/* 1. Camera View (Priority) */}
+            {/* 1. Camera View (Priority) - Only show if proctored */}
+            {attempt.proctored && (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
               <div className="px-3 py-2 border-b bg-gray-50 flex justify-between items-center">
                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Proctoring</h3>
@@ -536,7 +768,20 @@ const TakeTest: React.FC = () => {
                   <ProctoringManager
                     stream={proctoringStream}
                     attemptId={attempt.id}
+                    testId={attempt.testId}
+                    maxViolations={3}
                     onError={(err) => setProctoringError(err)}
+                    onStatusChange={(status) => {
+                      // Block test if face is not visible or multiple faces detected
+                      // We give a small grace period (or debounce) effectively by checking consistency? 
+                      // For now, strict:
+                      if (!status.faceVisible || status.hasMultipleFaces) {
+                        setIsProctoringBlocked(true);
+                      } else {
+                        setIsProctoringBlocked(false);
+                      }
+                    }}
+                    onMaxViolationsReached={handleMaxViolationsReached}
                     className="w-full"
                   />
                 ) : (
@@ -547,6 +792,47 @@ const TakeTest: React.FC = () => {
                 )}
               </div>
             </div>
+            )}
+
+            {/* BLOCKING OVERLAY FOR PROCTORING VIOLATION - Only show if proctored */}
+            {attempt.proctored && isProctoringBlocked && (
+              <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center text-white p-8 text-center backdrop-blur-xl">
+                <div className="bg-red-600 rounded-full p-6 mb-6 animate-pulse">
+                  <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                </div>
+                <h2 className="text-4xl font-bold mb-4">TEST PAUSED</h2>
+                <h3 className="text-xl font-semibold text-red-400 mb-8 max-w-xl">
+                  Security Violation Detected: Your face is not visible or camera is potentially blocked.
+                </h3>
+                <p className="text-gray-300 text-lg mb-8 max-w-2xl">
+                  Please ensure you are sitting directly in front of the camera, your face is clearly visible, and the camera lens is not covered.
+                  The test will resume automatically once your face is detected.
+                </p>
+
+                {/* Show the camera feed here too so they can fix it */}
+                <div className="w-64 aspect-video bg-black rounded-lg overflow-hidden border-2 border-red-500 relative">
+                  {/* Minimal duplication for feedback - or we could trust the user to look at the other feed if visible? 
+                                 Actually since this is full screen z-[100], they can't see the sidebar. We MUST show feed here.
+                                 BUT ProctoringManager is mounted below. We can't mount it twice with same stream cleanly probably (model load).
+                                 Better to just show "Check Camera" message or rely on external feed if we don't cover 100%?
+                                 User asked to BLOCK. So we cover everything.
+                                 We can create a simple video element here just for feedback using the stream.
+                             */}
+                  {proctoringStream && (
+                    <video
+                      ref={(ref) => {
+                        if (ref && proctoringStream) {
+                          ref.srcObject = proctoringStream;
+                          ref.play().catch(() => { });
+                        }
+                      }}
+                      className="w-full h-full object-cover transform scale-x-[-1]"
+                      autoPlay muted playsInline
+                    />
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* 2. System Connectivity */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -618,6 +904,28 @@ const TakeTest: React.FC = () => {
             navigate("/dashboard");
           }}
         />
+      )}
+
+      {showFullscreenWarning && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 text-center">
+            <div className="mb-4">
+              <svg className="w-16 h-16 text-red-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Fullscreen Required</h3>
+            <p className="text-gray-600 mb-6">
+              You must stay in fullscreen mode during the test. Exiting fullscreen is recorded as a violation.
+            </p>
+            <button
+              onClick={() => enterFullscreen()}
+              className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow-lg"
+            >
+              Return to Fullscreen
+            </button>
+          </div>
+        </div>
       )}
 
       {showQuestionPaper && (
